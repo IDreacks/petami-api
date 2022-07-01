@@ -6,9 +6,12 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\AnnoncesRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Core\Annotation\ApiFilter;
 
 #[ORM\Entity(repositoryClass: AnnoncesRepository::class)]
 #[ApiResource(normalizationContext: ['groups' => ['read_annonces']], denormalizationContext: ['groups' => ['write_annonces']])]
+#[ApiFilter(DateFilter::class, properties: ['StartDate'])]
 class Annonces
 {
     #[ORM\Id]
@@ -17,17 +20,22 @@ class Annonces
     #[Groups(['read_annonces', "write_annonces"])]
     private $id;
 
-    #[ORM\Column(type: 'date')]
+    #[ORM\Column(type: 'datetime')]
     #[Groups(['read_annonces', "write_annonces"])]
     private $StartDate;
 
-    #[ORM\Column(type: 'date')]
+    #[ORM\Column(type: 'datetime')]
     #[Groups(['read_annonces', "write_annonces"])]
     private $EndDate;
 
     #[ORM\Column(type: 'text')]
     #[Groups(['read_annonces', "write_annonces"])]
     private $Description;
+
+    #[Groups(['read_annonces', "write_annonces"])]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'annonces')]
+    #[ORM\JoinColumn(nullable: false)]
+    private $user;
 
     // #[ORM\ManyToOne(targetEntity: AnnonceType::class, inversedBy: 'libellé')]
     // #[ORM\JoinColumn(nullable: false)]
@@ -39,11 +47,6 @@ class Annonces
     // #[ORM\JoinColumn(nullable: false)]
     // #[Groups(['read_annonces', "write_annonces"])]
     // private $etat;
-
-    // #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'User')]
-    // #[ORM\JoinColumn(nullable: false)]
-    // #[Groups(['read_annonces', "write_annonces"])]
-    // private $User;
 
     // #[ORM\ManyToOne(targetEntity: Animal::class, inversedBy: 'Animal')]
     // #[Groups(['read_annonces', "write_annonces"])]
@@ -114,17 +117,6 @@ class Annonces
     //     return $this;
     // }
 
-    // public function getUser(): ?User
-    // {
-    //     return $this->User;
-    // }
-
-    // public function setUser(?User $User): self
-    // {
-    //     $this->User = $User;
-
-    //     return $this;
-    // }
 
     // public function getAnimal(): ?Animal
     // {
@@ -137,4 +129,16 @@ class Annonces
 
     //     return $this;
     // }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
+
+        return $this;
+    }
 }

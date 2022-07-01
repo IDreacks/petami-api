@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -13,45 +14,56 @@ use ApiPlatform\Core\Annotation\ApiResource;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-#[ApiResource]
+#[ApiResource(normalizationContext: ['groups' => ['read_users']], denormalizationContext: ['groups' => ['write_users']])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
+    #[Groups(['read_users', "write_users", "read_annonces"])]
     #[ORM\Column(type: 'integer')]
     private $id;
 
+    #[Groups(['read_users', "write_users"])]
     #[ORM\Column(type: 'string', length: 180, unique: true)]
     private $email;
 
     #[ORM\Column(type: 'json')]
+    #[Groups(['read_users', "write_users"])]
     private $roles = [];
 
     #[ORM\Column(type: 'string')]
+    #[Groups(['read_users', "write_users"])]
     private $password;
 
+    #[Groups(['read_users', "write_users", "read_annonces"])]
     #[ORM\Column(type: 'string', length: 100)]
-    private $Lastname;
+    private $lastname;
 
     #[ORM\Column(type: 'string', length: 100)]
-    private $Firstname;
+    #[Groups(['read_users', "write_users", "read_annonces"])]
+    private $firstname;
 
     #[ORM\Column(type: 'integer', nullable: true)]
+    #[Groups(['read_users', "write_users", "read_annonces"])]
     private $Postal_code;
 
     #[ORM\Column(type: 'string', length: 150, nullable: true)]
+    #[Groups(['read_users', "write_users", "read_annonces"])]
     private $City;
 
     #[ORM\Column(type: 'string', length: 200, nullable: true)]
+    #[Groups(['read_users', "write_users", "read_annonces"])]
     private $Street;
 
     #[ORM\Column(type: 'integer', nullable: true)]
+    #[Groups(['read_users', "write_users", "read_annonces"])]
     private $Age;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $Picture;
+    private $picture;
 
     #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(['read_users', "write_users"])]
     private $description;
 
     #[ORM\OneToMany(mappedBy: 'User', targetEntity: Annonces::class)]
@@ -60,10 +72,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'User', targetEntity: ImageMaison::class, orphanRemoval: true)]
     private $house_pics;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Annonces::class, orphanRemoval: true)]
+    private $annonces;
+
     public function __construct()
     {
         $this->User = new ArrayCollection();
         $this->house_pics = new ArrayCollection();
+        $this->annonces = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -138,24 +154,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getLastname(): ?string
     {
-        return $this->Lastname;
+        return $this->lastname;
     }
 
-    public function setLastname(string $Lastname): self
+    public function setLastname(string $lastname): self
     {
-        $this->Lastname = $Lastname;
+        $this->lastname = $lastname;
 
         return $this;
     }
 
     public function getFirstname(): ?string
     {
-        return $this->Firstname;
+        return $this->firstname;
     }
 
-    public function setFirstname(string $Firstname): self
+    public function setFirstname(string $firstname): self
     {
-        $this->Firstname = $Firstname;
+        $this->firstname = $firstname;
 
         return $this;
     }
@@ -210,12 +226,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getPicture(): ?string
     {
-        return $this->Picture;
+        return $this->picture;
     }
 
-    public function setPicture(?string $Picture): self
+    public function setPicture(?string $picture): self
     {
-        $this->Picture = $Picture;
+        $this->picture = $picture;
 
         return $this;
     }
@@ -286,6 +302,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($housePic->getUser() === $this) {
                 $housePic->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Annonces>
+     */
+    public function getAnnonces(): Collection
+    {
+        return $this->annonces;
+    }
+
+    public function addAnnonce(Annonces $annonce): self
+    {
+        if (!$this->annonces->contains($annonce)) {
+            $this->annonces[] = $annonce;
+            $annonce->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAnnonce(Annonces $annonce): self
+    {
+        if ($this->annonces->removeElement($annonce)) {
+            // set the owning side to null (unless already changed)
+            if ($annonce->getUser() === $this) {
+                $annonce->setUser(null);
             }
         }
 

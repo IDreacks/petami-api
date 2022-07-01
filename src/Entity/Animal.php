@@ -26,6 +26,10 @@ class Animal
     #[ORM\Column(type: 'text')]
     private $Description;
 
+    // #[ORM\ManyToOne(targetEntity: AnimalType::class, inversedBy: 'animals')]
+    // #[ORM\JoinColumn(nullable: false)]
+    // private $animal_type;
+
     // #[ORM\Column(type: 'string', length: 255)]
     // private $Photo;
 
@@ -131,6 +135,18 @@ class Animal
     //             $animal->setAnimal(null);
     //         }
     //     }
+
+    //     return $this;
+    // }
+
+    // public function getAnimalType(): ?AnimalType
+    // {
+    //     return $this->animal_type;
+    // }
+
+    // public function setAnimalType(?AnimalType $animal_type): self
+    // {
+    //     $this->animal_type = $animal_type;
 
     //     return $this;
     // }
